@@ -74,15 +74,18 @@
     }
 
     .dropzone {
-  display: flex; /* ⬅️ más compatible con móviles */
-  flex-wrap: wrap;
+  display: flex;
+  flex-wrap: nowrap;        /* ❌ No permitir saltos de línea */
+  overflow-x: auto;         /* ✅ Activar scroll horizontal si es necesario */
+  white-space: nowrap;      /* ✅ Asegurar que todo quede en línea */
   gap: 5px;
   padding: 5px;
-  border: none; /* Quita el borde punteado */
+  border: none;
   position: relative;
   min-height: 40px;
   margin-bottom: 10px;
 }
+
 
 /* Línea azul debajo como "renglón" */
 .dropzone::after {
