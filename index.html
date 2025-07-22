@@ -6,8 +6,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
-      
+      font-family: 'poppins', sans-serif;
       background-color: #f4f4f9;
       margin: 0;
       padding: 0;
@@ -96,6 +95,9 @@
   background-color: #007BFF; /* Azul */
 }
 
+
+
+
     .dropzone::-webkit-scrollbar {
       height: 6px;
     }
@@ -131,12 +133,16 @@
       border-color: #dc3545;
     }
 
-    .word.dragging {
-      opacity: 0.7;
-      background-color: #ffeeba;
-      border-color: #ffc107;
-      transition: transform 0.2s ease;
-    }
+ .word.dragging {
+  opacity: 0.5;
+  background-color: #f8fd00;
+  scale: 1.1;
+  z-index: 10;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+
+
 
     button {
       padding: 10px 15px;
@@ -180,21 +186,22 @@
 
   <script>
     const sentences = [
-      "I do athletics every day.",
-      "I don’t do gymnastics.",
-      "Do I do exercise?",
-      "He does trampolining.",
-      "He doesn’t go swimming.",
-      "She drinks lemonade.",
-      "They play baseball.",
-      "We eat fruit.",
-      "Does she go rowing?",
-      "Does he go outdoors?",
-      "She doesn’t drink milk.",
-      "We don’t play badminton.",
-      "They don’t eat sweets.",
-      "Do we go mountain biking?",
-      "Do they play handball?"
+      "I play the piano in a band.",
+      "I don’t sing.",
+      "What do I play?",
+      "He never dances.",
+      "He doesn’t listen to rock music.",
+      "Does he play the violin?",
+      "We always dance to pop music.",
+      "We don’t play the recorder.",
+      "When do we perform?",
+      "They play the keyboard.",
+      "They don’t play the drums.",
+      "Do they do sport?",
+      "She sometimes plays classical music.",
+      "She doesn’t practise every day.",
+      "Where does she play video games?",
+      
     ];
 
     const container = document.getElementById("sentences");
@@ -206,7 +213,11 @@
     }
 
     function createSentence(sentence, index) {
-      const words = sentence.replace(/[.?]/g, '').split(' ');
+      const words = sentence
+  .replace(/\?/g, ' ?')   // agrega espacio antes del ?
+  .replace(/\./g, '')     // elimina el punto final
+  .split(' ');
+
       const shuffled = shuffleArray([...words]);
 
       const wrapper = document.createElement("div");
@@ -229,17 +240,56 @@
       shuffled.forEach(word => {
         const span = document.createElement("span");
         span.className = "word";
+span.textContent = word; // ⬅️ ESTA LÍNEA ES LA CLAVE
+
+
         span.draggable = true;
-        span.textContent = word;
 
-        span.addEventListener("dragstart", (e) => {
-          e.dataTransfer.setData("text/plain", word);
-          span.classList.add("dragging");
-        });
 
-        span.addEventListener("dragend", () => {
-          span.classList.remove("dragging");
-        });
+// Eventos para escritorio
+span.addEventListener("dragstart", (e) => {
+  e.dataTransfer.setData("text/plain", word);
+  span.classList.add("dragging");
+});
+
+span.addEventListener("dragend", () => {
+  span.classList.remove("dragging");
+});
+
+        // Soporte touch para móviles
+span.addEventListener("touchstart", handleTouchStart);
+span.addEventListener("touchmove", handleTouchMove);
+span.addEventListener("touchend", handleTouchEnd);
+
+// Eventos para móviles (touch)
+span.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  span.classList.add("dragging");
+  span.touchStartX = e.touches[0].clientX;
+});
+
+span.addEventListener("touchmove", (e) => {
+  const touch = e.touches[0];
+  const dragging = document.querySelector(".dragging");
+  if (!dragging) return;
+
+  const dropzone = dragging.parentElement;
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+
+  if (el && el.classList.contains("word") && el !== dragging && el.parentElement === dropzone) {
+    const words = [...dropzone.querySelectorAll(".word:not(.dragging)")];
+    const index = words.indexOf(el);
+    if (index !== -1) {
+      dropzone.insertBefore(dragging, el);
+    }
+  }
+});
+
+
+span.addEventListener("touchend", () => {
+  span.classList.remove("dragging");
+});
+
 
         dropzone.appendChild(span);
       });
@@ -309,6 +359,32 @@
       sentences.forEach((s, i) => createSentence(s, i));
       document.getElementById("resultado").textContent = "";
     }
+
+    let touchedElement = null;
+
+function handleTouchStart(e) {
+  touchedElement = e.target;
+  touchedElement.classList.add("dragging");
+  e.stopPropagation();
+}
+
+function handleTouchMove(e) {
+  const touch = e.touches[0];
+  const dropzone = touchedElement.closest(".dropzone");
+  const afterElement = getDragAfterElement(dropzone, touch.clientX);
+  if (afterElement == null) {
+    dropzone.appendChild(touchedElement);
+  } else {
+    dropzone.insertBefore(touchedElement, afterElement);
+  }
+}
+
+function handleTouchEnd(e) {
+  if (touchedElement) {
+    touchedElement.classList.remove("dragging");
+    touchedElement = null;
+  }
+}
 
     resetAll();
   </script>
